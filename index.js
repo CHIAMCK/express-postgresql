@@ -1,40 +1,66 @@
 
-const Koa = require('koa')
-var bodyParser = require('koa-bodyparser')
-const Router = require('koa-router')
+const express = require('express')
 const nconf = require('nconf')
-const session = require('koa-session')
-var redisStore = require('koa-redis');
+// parse incoming request bodies
+const bodyParser = require('body-parser')
+const session = require('express-session')
+//  redis session store for Express
+const RedisStore = require('connect-redis')(session)
+// using node_redis, redis client for node
+const redis = require('redis')
+const client = redis.createClient()
+const cookieParser = require('cookie-parser')
+const methodOverride = require('method-override')
+const mongoose = require('mongoose')
 
 nconf
   .argv()
   .env()
 
-const app = new Koa();
-const router = new Router();
+// database connection
+mongoose.connect('mongodb://localhost/my_db', {useNewUrlParser: true}, (err) => {
+  if (err) {
+    console.log(err)
+    console.log('Couldnot connect to MongoDB')
+  }
+})
+
+const app = new express();
+
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({extended:false}))
+
+// parse application/json
+app.use(bodyParser.json())
+
+// Lets you use HTTP verbs such as PUT or DELETE in places
+// where the client doesn't support it.
+app.use(methodOverride())
+
+// parser cookie header and populate req.cookie
+app.use(cookieParser());
+
+app.use(session({
+  saveUninitialized: true,
+  // forces the session to be saved back to the sesion store,
+  // even if the session was never modified during the request
+  resave: false,
+  //  to sign the session ID cookie
+  secret: nconf.get('SESSION_COLLECTION'),
+  //  session store instance
+  store: new RedisStore({
+    client: client,
+    host: nconf.get('REDIS_HOST'),
+    port: nconf.get('REDIS_PORT')
+  })
+}))
 
 // setup db connections
 require('./model')
 
+// route setting
 const routes = require('./routes')
-
-routes(router)
-
-app.use(bodyParser())
-
-// session setting
-app.use(session({
-  key: nconf.get('SESSION_KEY'),
-  store: redisStore({
-    host: nconf.get('REDIS_HOST'),
-    port: nconf.get('REDIS_PORT')
-  })
-}, app))
-
-// routes setting
-app
-  .use(router.routes())
-  .use(router.allowedMethods())
+routes(app)
 
 // port setting
 const port = nconf.get('PORT')

@@ -2,13 +2,14 @@ version: '3'
 
 services:
   db:
-    image: postgres:9.3
+    image: mongo
     ports:
-      - "5432:5432"
+      - "27017:27017"
     environment:
-      POSTGRES_PASSWORD: password
-      POSTGRES_USER: username
-      POSTGRES_DB: elelong-account
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - ./data/db:/data/db
   redis:
     image: redis:3.2
     ports:
