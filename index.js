@@ -11,19 +11,13 @@ const redis = require('redis')
 const client = redis.createClient()
 const cookieParser = require('cookie-parser')
 const methodOverride = require('method-override')
-const mongoose = require('mongoose')
 
 nconf
   .argv()
   .env()
 
-// database connection
-mongoose.connect('mongodb://localhost/my_db', {useNewUrlParser: true}, (err) => {
-  if (err) {
-    console.log(err)
-    console.log('Couldnot connect to MongoDB')
-  }
-})
+// setup database connection
+require('./model')
 
 const app = new express();
 

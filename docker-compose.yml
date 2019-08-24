@@ -2,12 +2,13 @@ version: '3'
 
 services:
   db:
-    image: mongo
+    image: postgres:9.3
     ports:
-      - "27017:27017"
+      - "5432:5432"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: username
+      POSTGRES_DB: my-db
     volumes:
       - ./data/db:/data/db
   redis:

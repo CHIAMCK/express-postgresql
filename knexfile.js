@@ -1,4 +1,5 @@
-// Update with your config settings.
+// Migrations use a knexfile, which specify various configuration settings
+// for the module.
 const nconf = require('nconf')
 
 nconf.env()
@@ -53,5 +54,4 @@ module.exports = {
       tableName: 'knex_migrations'
     }
   }
-
 };
